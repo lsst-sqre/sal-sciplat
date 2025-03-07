@@ -1,4 +1,5 @@
-FROM ghcr.io/lsst-sqre/jupyterlab-base:tickets/dm-47346 AS base-image
+ARG input
+FROM $input AS base-image
 USER 0:0
 SHELL ["/bin/bash", "-lc"]
 
@@ -117,9 +118,9 @@ WORKDIR /tmp
 CMD ["/usr/local/share/jupyterlab/runlab"]
 
 # Overwrite Stack Container definitions with more-accurate-for-us ones
-ENV  DESCRIPTION="Rubin Science Platform Notebook Aspect"
-ENV  SUMMARY="Rubin Science Platform Notebook Aspect"
+ENV  DESCRIPTION="Rubin Science Platform Notebook Aspect, SAL edition"
+ENV  SUMMARY="Rubin Science Platform Notebook Aspect, SAL edition"
 
-LABEL description="Rubin Science Platform Notebook Aspect: $version" \
-       name="sciplat-lab:$version" \
+LABEL description="Rubin Science Platform Notebook Aspect, SAL edition: $version" \
+       name="sal-sciplat:$version" \
        version="$version"

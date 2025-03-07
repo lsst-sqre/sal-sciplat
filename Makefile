@@ -1,9 +1,8 @@
 # We need four pieces of information to build the container:
 #  tag is the tag on the input DM Stack container.  It is mandatory.
 #  image is the Docker repository image we're pushing to; we can use the
-#   default if we don't specify it, which goes to Docker Hub, Google
-#   Artifact Registry, and GitHub Container Registry.  image
-#   may be a comma-separated list of target repositories.
+#   default if we don't specify it, which goes to GitHub Container Registry.
+#   image may be a comma-separated list of target repositories.
 #  input is the base JupyterLab container we use: a JupyterLab implementation
 #   engineered to be started by the RSP Nublado machinery.  Other than
 #   perhaps changing the input container's tag, it should generally be left
@@ -15,7 +14,7 @@
 #   make tag=w_2024_50
 
 # To push to a different repository:
-#   make tag=w_2024_50 image=ghcr.io/lsst-sqre/sciplat-lab
+#   make tag=w_2024_50 image=docker.io/lsst-sqre/sal-sciplat
 
 # To tag as experimental "foo" (-> exp_w_2023_50_foo):
 #   make tag=w_2024_50 supplementary=foo
@@ -33,7 +32,7 @@
 #  building user already has appropriate push credentials set.
 
 # The third target, "retag", is a little different.  Its tag is the tag on
-#  the input image, but "input" will, itself, be a sciplat-lab container.
+#  the input image, but "input" will, itself, be a sal-sciplat container.
 #  "supplementary" will be the tag to add to this image; no substitution will
 #  be done on either the input tag or the supplementary tag.  As with "push"
 #  it assumes that the building user has appropriate push credentials set.
@@ -44,11 +43,10 @@ ifeq ($(tag),)
     $(error tag must be set)
 endif
 
-# By default, we will push to Docker Hub, Google Artifact Registry,
-# and GitHub Container Registry.  We expect to eventually drop Docker Hub.
+# By default, we will push to GitHub Container Registry.
 
 ifeq ($(image),)
-    image = docker.io/lsstsqre/sciplat-lab,us-central1-docker.pkg.dev/rubin-shared-services-71ec/sciplat/sciplat-lab,ghcr.io/lsst-sqre/sciplat-lab
+    image = ghcr.io/lsst-sqre/sal-sciplat
 endif
 
 # Our default input image is ghcr.io/lsst-sqre/nublado-jupyterlab-base
@@ -175,7 +173,7 @@ retag:
 	$(DOCKER) pull ghcr.io/lsst-sqre/sciplat-lab:$(tag) && \
 	    outputs=$$(echo $(image) | cut -d ',' -f 1- | tr ',' ' ') && \
 	    for o in $${outputs}; do \
-	        $(DOCKER) tag ghcr.io/lsst-sqre/sciplat-lab::$(tag) $${o}:$${supplementary} ; \
+	        $(DOCKER) tag ghcr.io/lsst-sqre/sal-sciplat:$(tag) $${o}:$${supplementary} ; \
 	        $(DOCKER) push $${o}:$${supplementary} ; \
 	    done ; \
 	fi

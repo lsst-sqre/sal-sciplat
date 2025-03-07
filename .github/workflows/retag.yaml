@@ -1,0 +1,128 @@
+name: Manually triggered retag of sal-sciplat container
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Docker tag of input container'
+        required: true
+        default: ''
+      supplementary:
+        description: 'Additional value to tag container with'
+        required: true
+        default: ''
+      image:
+        description: 'fully-qualified URI for output Docker image'
+        required: false
+        default: 'ghcr.io/lsst-sqre/sal-sciplat'
+
+# We need actions/write if we want to do a GH App, and we need
+# packages/write to push to ghcr.io with GITHUB_TOKEN (currently not
+# working, under investigation)
+permissions:
+  actions: write
+  contents: read
+  packages: write
+  statuses: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 100
+    steps:
+    - name: checkout
+      uses: actions/checkout@v4
+    - name: import_inputs
+      shell: bash
+      run: |
+        echo "tag=${{ github.event.inputs.tag }}" >> $GITHUB_ENV
+        echo "supplementary=${{ github.event.inputs.supplementary }}" >> $GITHUB_ENV
+        echo "image=${{ github.event.inputs.image }}" >> $GITHUB_ENV
+
+    - name: parse_env
+      shell: bash
+      run: |
+         make_args="tag=${{ env.tag }} supplementary=${{ env.supplementary }}"
+         make_args="${make_args} image=${{ env.image }}"
+         echo "make_args=${make_args}" >> $GITHUB_ENV
+         # env.image may be a comma-separated list of images; we are
+         # thus creating a set of registry-specific variables from the
+         # images in the list
+         split_images=$(echo ${{ env.image }} | tr ',' ' ')
+         for img in ${split_images}; do
+             image_host=$(echo ${img} | cut -d '/' -f 1)
+             # Check for implicit Docker Hub
+             case ${image_host} in
+                 *.*)
+                     ;;
+                 *)
+                     image_host="docker.io"
+                     ;;
+             esac
+             case ${image_host} in
+                 docker.com | docker.io | *.docker.com | *.docker.io)
+                     d_tag="docker_"
+                     d_registry="docker.io"
+                     d_username="${{ secrets.DOCKER_USERNAME }}"
+                     d_password="${{ secrets.DOCKER_TOKEN }}"
+                     ;;
+                 ghcr.io | *.ghcr.io)
+                     d_tag="github_"
+                     d_registry="ghcr.io"
+                     d_username="token"
+                     d_password="${{ secrets.GHCR_PUSH_TOKEN}}"
+                     ;;
+                 *-docker.pkg.dev)
+                    d_tag="google_"
+                    d_registry="${image_host}"
+                    d_username="_json_key_base64"
+                    d_password="${{ secrets.GAR_PUSH_TOKEN }}"
+                    ;;
+                 *)
+                     d_tag=""
+                     d_registry="${image_host}"
+                     d_username=""
+                     d_password=""
+                     ;;
+             esac
+             echo "${d_tag}registry=${d_registry}" >> $GITHUB_ENV
+             echo "${d_tag}username=${d_username}" >> $GITHUB_ENV
+             echo "${d_tag}password=${d_password}" >> $GITHUB_ENV
+         done
+
+    # Only bother logging in to a given site if we have credentials
+    - name: Log in to Docker Hub repository
+      if: >-
+        ((env.docker_registry != '') &&
+         (env.docker_username != '') &&
+         (env.docker_password != ''))
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ env.docker_registry }}
+        username: ${{ env.docker_username }}
+        password: ${{ env.docker_password }}
+    - name: Log in to GitHub Container Registry
+      if: >-
+        ((env.github_registry != '') &&
+         (env.github_username != '') &&
+         (env.github_password != ''))
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ env.github_registry }}
+        username: ${{ env.github_username }}
+        password: ${{ env.github_password }}
+    - name: Log in to Google Artifact Registry
+      if: >-
+        ((env.google_registry != '') &&
+         (env.google_username != '') &&
+         (env.google_password != ''))
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ env.google_registry }}
+        username: ${{ env.google_username }}
+        password: ${{ env.google_password }}
+
+    - name: build
+      shell: bash
+      run: |
+            make ${{ env.make_args }} retag
