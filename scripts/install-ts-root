@@ -1,0 +1,31 @@
+#!/usr/bin/env/bash
+
+# Run as root
+
+set -x
+
+. sal-sciplat/cycle.env  # Get T&S variables
+
+cd /usr/share/zoneinfo
+
+curl https://www.ietf.org/timezones/data/leap-seconds.list -o \
+     leap-seconds.list
+
+LOADSTACK=/opt/lsst/software/stack/loadLSST.bash
+
+SRCDIR=/opt/lsst/src
+SALSTACK=/opt/lsst/sal/salbldsteps.bash
+TZ="UTC"
+
+QT_API="PySide6"
+PYTEST_QT_API="PySide6"
+
+cp sal-sciplat/salbldsteps.bash ${SALSTACK}
+cp sal-sciplat/print_stack_version.sh /opt/lsst/sal/print_stack_version.sh
+
+mkdir -p ${SRCDIR} && \
+    chown -R lsst_local:lsst_local ${SRCDIR} && \
+    chown -R lsst_local:lsst_local /opt/lsst/sal/print_stack_version.sh && \
+    chmod uga+x ${SALSTACK} && \
+    chmod uga+x /opt/lsst/sal/print_stack_version.sh
+
