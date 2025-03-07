@@ -3,7 +3,7 @@ set -x
 
 # Run as lsst_local
 
-. sal-sciplat/cycle.env
+. cycle.env
 
 LOADSTACK=/opt/lsst/software/stack/loadLSST.bash
 
@@ -12,6 +12,9 @@ SALSTACK=/opt/lsst/sal/salbldsteps.bash
 
 
 # Conda install TSSW packages that are frozen. These are seldom changed by
+
+# Way too much output
+set +x
 
 source ${LOADSTACK} && \
     conda config --set solver libmamba && \
@@ -120,6 +123,7 @@ source ${LOADSTACK} && \
     cd .. ; \
     done
 
+set -x
 # Check that packages can be imported.
 source ${SALSTACK} && \
     python -c "from lsst.ts.observatory import control" && \

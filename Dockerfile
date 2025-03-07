@@ -52,10 +52,9 @@ RUN ./install-dm-stack $tag
 
 # Do the SAL install
 
-RUN  mkdir -p /tmp/build/sal-sciplat
 COPY scripts/install-ts-root /tmp/build
 COPY scripts/install-ts-user /tmp/build
-COPY scripts/sal-sciplat/* /tmp/build/sal-sciplat
+COPY scripts/sal-sciplat/* /tmp/build
 
 USER root
 

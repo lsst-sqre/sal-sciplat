@@ -14,11 +14,14 @@ curl -OL https://ls.st/lsstinstall
 chmod u+x lsstinstall
 # 1 Oct 2024.  Should be fixed upstream Real Soon Now:
 sed -i -e 's/Mambaforge/Miniforge3/' lsstinstall
+# Way too much output
+set +x
 ./lsstinstall -T $TAG
 source $stackdir/loadLSST.bash
 for prod in $EUPS_PRODUCTS; do
     eups distrib install --no-server-tags -vvv "$prod" -t "$EUPS_TAG"
 done
+set -x
 find ${stackdir} -exec strip --strip-unneeded --preserve-dates {} + \
      > /dev/null 2>&1 || true
 find ${stackdir} -maxdepth 5 -name tests -type d -exec rm -rf {} + \
@@ -29,8 +32,10 @@ find ${stackdir} -maxdepth 6 \
 find ${stackdir} -maxdepth 5 -name src -type d -exec rm -rf {} + \
        > /dev/null 2>&1 || true
 
+set +x
 eups distrib install -t $TAG lsst_distrib
 curl -sSL $sbt | python
 setup lsst_distrib
+set -x
 
 mamba clean -a -f -y --no-banner # Not clear that -f is safe.
