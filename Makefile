@@ -49,7 +49,7 @@ ifeq ($(image),)
     image = docker.io/lsstsqre/sal-sciplat-lab
 endif
 
-# Our default input image is ghcr.io/lsst-sqre/nublado-jupyterlab-base
+# Our default input image is ghcr.io/lsst-sqre/sciplat-lab:exp_<tag>_2py
 #
 # Right now the tag has to be manually specified, but a little work on the
 # nublado side should at least get us to tag latest on tagged uploads from
@@ -59,12 +59,12 @@ endif
 # kicking off scheduled builds.
 
 ifeq ($(input),)
-    input = ghcr.io/lsst-sqre/nublado-jupyterlab-base:tickets-DM-47346
+    input = ghcr.io/lsst-sqre/sciplat-lab:exp_$(tag)_2py
 endif
 
 # Extract cycle and build from T&S env file
-cycle := $(shell grep CYCLE= scripts/sal-sciplat/cycle.env | cut -d: -f2)
-build := $(shell grep rev= scripts/sal-sciplat/cycle.env | cut -d: -f2)
+cycle := $(shell grep CYCLE= scripts/sal-sciplat/cycle.env | cut -d= -f2)
+build := $(shell grep rev= scripts/sal-sciplat/cycle.env | cut -d= -f2)
 
 # Some day we might use a different build tool.  If you have a new enough
 #  docker, you probably want to set DOCKER_BUILDKIT in your environment.
@@ -101,7 +101,7 @@ endif
 ifneq ($(cycle),)
     version := $(version)_$(cycle)
     ifneq ($(build),)
-        version := $(version).$(build)
+        version := $(version)$(build)
     endif
 endif
 
@@ -182,10 +182,10 @@ retag:
 	    echo "supplementary parameter must be set for retag!" ; \
 	    exit 1 ; \
 	else \
-	$(DOCKER) pull ghcr.io/lsst-sqre/sciplat-lab:$(tag) && \
+	$(DOCKER) pull docker.io/lsstsqre/sal-sciplat-lab:$(tag) && \
 	    outputs=$$(echo $(image) | cut -d ',' -f 1- | tr ',' ' ') && \
 	    for o in $${outputs}; do \
-	        $(DOCKER) tag ghcr.io/lsst-sqre/sal-sciplat:$(tag) $${o}:$${supplementary} ; \
+	        $(DOCKER) tag docker.io/lsstsqre/sal-sciplat-lab:$(tag) $${o}:$${supplementary} ; \
 	        $(DOCKER) push $${o}:$${supplementary} ; \
 	    done ; \
 	fi
