@@ -14,7 +14,7 @@ on:
       image:
         description: 'fully-qualified URI for output Docker image'
         required: false
-        default: 'ghcr.io/lsst-sqre/sal-sciplat'
+        default: 'docker.io/lsstsqre/sal-sciplat-lab'
       push:
         description: 'push resulting image; make empty or set to a YAML-false string to build but not push'
         required: false

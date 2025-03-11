@@ -100,6 +100,11 @@ RUN ./generate-versions
 FROM manifests-rsp-image AS rsp-image
 ARG version
 
+# Add T&S tags to image description
+RUN . /tmp/build/cycle.env ; \
+    [ -n "${CYCLE}" ] && version="${version}_${CYCLE}"; \
+    [ -n "${rev}" ] && version="${version}.${rev}"
+
 # Clean up.
 # This needs to be numeric, since we will remove /etc/passwd and friends
 # while we're running.
