@@ -1,5 +1,5 @@
 # This just saves us some repetition in SAL setup scripts
-source ${LOADSTACK}
+source /opt/lsst/software/stack/loadLSST.bash
 unset LD_PRELOAD
 setup lsst_distrib
 setup ts_salobj -t current
