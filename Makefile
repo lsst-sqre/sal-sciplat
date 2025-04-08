@@ -49,17 +49,13 @@ ifeq ($(image),)
     image = docker.io/lsstsqre/sal-sciplat-lab
 endif
 
-# Our default input image is ghcr.io/lsst-sqre/nublado-jupyterlab-base
+# Our default input image is ghcr.io/lsst-sqre/sciplat-lab:<tag>
 #
-# Right now the tag has to be manually specified, but a little work on the
-# nublado side should at least get us to tag latest on tagged uploads from
-# main.
-#
-# You can always specify it directly, but this should be a sane default for
-# kicking off scheduled builds.
+# This will only work for tags d_2025_04_08 or later.  The first weekly
+# to have the right image is w_2025_15.
 
 ifeq ($(input),)
-    input = ghcr.io/lsst-sqre/nublado-jupyterlab-base:tickets-DM-47346
+    input = ghcr.io/lsst-sqre/sciplat-lab:$(tag)
 endif
 
 # Extract cycle and build from T&S env file
